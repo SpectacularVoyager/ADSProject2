@@ -57,3 +57,12 @@ int MergeStreamNext(MergeStream* s,record* r){
 	}
 	return CachedStreamPoll(&s->stream[ptr]);
 }
+int PredicatedStreamNext(PredicatedStream* s,record* r){
+	while(MergeStreamNext(&s->stream,r)){
+		if(s->fun(r)==1){
+			return 1;
+		}
+	}
+	return 0;
+
+}

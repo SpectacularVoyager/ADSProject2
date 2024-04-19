@@ -33,3 +33,9 @@ int CachedStreamNext(CachedStream* s,record* r);
 int CachedStreamPeek(CachedStream* s,record* r);
 
 int MergeStreamNext(MergeStream* s,record* r);
+
+typedef struct PredicatedStream{
+	MergeStream stream;
+	int (*fun)(record*);
+} PredicatedStream;
+int PredicatedStreamNext(PredicatedStream* s,record* r);

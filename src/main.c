@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include"LSMTree.h"
 #include "record.h"
 #include "utils.h"
@@ -19,16 +20,29 @@ char* randStr(char** arr,int n){
 record* getRandom(int time){
 	return Record(time,s(groups),s(users),s(msgs),time);
 }
-
-int main(){
-
-	LSMTree* lsm=LSM();
-
-	forin(11){
-		record* r=getRandom(i);
-		//LSMInsert(lsm,*r);
-		free(r);
+int check(record* r){
+	return strcmp("group1",r->group)==0;
+}
+void doScanCond(){
+	record r;
+	int k=0;
+	SSTableStream** streams= LSMGetStreams();	
+	int count=0;
+	for(int i=0;streams[i]!=NULL;i++){
+		count++;
 	}
+	CachedStream cached[count];
+	for(int i=0;i<count;i++){
+		cached[i]=cache(streams[i]);
+	}
+	printInt(count);
+	MergeStream stream={.stream=cached,.n=count};
+	PredicatedStream pred={.stream=stream,.fun=check};
+	while(PredicatedStreamNext(&pred,&r)){
+		RecordPrint(&r);
+	}
+}
+void doScan(){
 	record r;
 	int k=0;
 	SSTableStream** streams= LSMGetStreams();	
@@ -45,6 +59,18 @@ int main(){
 	while(MergeStreamNext(&stream,&r)){
 		RecordPrint(&r);
 	}
+}
+
+int main(){
+
+	LSMTree* lsm=LSM();
+
+	forin(11){
+		record* r=getRandom(i);
+		LSMInsert(lsm,*r);
+		free(r);
+	}
+	doScan();
 	free(lsm);
 
 }
