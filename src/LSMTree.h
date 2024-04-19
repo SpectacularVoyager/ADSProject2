@@ -1,7 +1,9 @@
 #pragma once
 #include"avl.h"
+#include"Streams.h"
+#include"utils.h"
 
-#define MAX_AVL_SIZE 100
+#define MAX_AVL_SIZE 10
 #define SPARSE 100
 
 
@@ -13,4 +15,6 @@ void LSMInsert(LSMTree* lsm,record n);
 
 LSMTree* LSM();
 
-void LSMReadTable(char* file);
+SSTableStream* LSMReadTable(char* file);
+
+SSTableStream** LSMGetStreams();

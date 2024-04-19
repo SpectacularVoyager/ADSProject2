@@ -3,6 +3,7 @@
 #include "record.h"
 #include <stdio.h>
 #include<dirent.h>
+#include <string.h>
 
 FILE* getFile(){
 	struct dirent *de;
@@ -41,14 +42,38 @@ void LSMFlush(LSMTree* lsm){
 	lsm->i=0;
 	lsm->root=NULL;
 }
-void LSMReadTable(char* file){
+SSTableStream* LSMReadTable(char* file){
 	FILE * f=fopen(file,"r");
-	record r;
+	return stream(f);
+}
+SSTableStream** LSMGetStreams(){
+	struct dirent *de;
+	DIR *dr=opendir("res/tables");
+	if(dr==NULL){
+		printf("COULD NOT OPEN DIR res/tables\n");
+		return NULL;
+	}
 	int count=0;
-	while(fread(&r,sizeof(record),1,f)>0){
+	while((de=readdir(dr))!=NULL){
+		if(de->d_type!=DT_REG){continue;}
 		count++;
 	}
-	fclose(f);
+	printf("C:%d\n",count);
+
+	SSTableStream **streams=malloc(sizeof(SSTableStream)*(count+1));
+
+	dr=opendir("res/tables");
+	int i=0;
+	while((de=readdir(dr))!=NULL){
+		if(de->d_type!=DT_REG){continue;}
+		char fp[200]="res/tables/";
+		strcat(fp,de->d_name);
+		printf("FILE:\t%s\n",fp);
+		FILE* f=fopen(fp,"r");
+		streams[i++]=stream(f);
+	}
+	streams[i]=NULL;
+	return streams;
 }
 
 void LSMInsert(LSMTree* lsm,record n){
