@@ -29,6 +29,7 @@ int main(){
 		free(r);
 	}
 	preOrder(lsm->root);
+	LSMReadTable("res/tables/table2");
 	free(lsm);
 
 }

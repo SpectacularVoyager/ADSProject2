@@ -12,3 +12,5 @@ typedef struct LSMTree{
 void LSMInsert(LSMTree* lsm,record n);
 
 LSMTree* LSM();
+
+void LSMReadTable(char* file);

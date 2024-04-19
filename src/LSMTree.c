@@ -41,6 +41,15 @@ void LSMFlush(LSMTree* lsm){
 	lsm->i=0;
 	lsm->root=NULL;
 }
+void LSMReadTable(char* file){
+	FILE * f=fopen(file,"r");
+	record r;
+	int count=0;
+	while(fread(&r,sizeof(record),1,f)>0){
+		count++;
+	}
+	fclose(f);
+}
 
 void LSMInsert(LSMTree* lsm,record n){
 	if(lsm->i>=MAX_AVL_SIZE){
