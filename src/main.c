@@ -6,6 +6,7 @@
 
 #define forin(n) for(int i=0;i<n;i++)
 #define s(x) randStr(x,sizeof(x)/sizeof(char*))
+#define printInt(x) printf("%d\n",x)
 
 char* groups[]={"group1","group2","group3","group4","group5","group6"};
 char* users[]={"user1","user2","user3","user4","user5","user6"};
@@ -31,15 +32,19 @@ int main(){
 	record r;
 	int k=0;
 	SSTableStream** streams= LSMGetStreams();	
-	//SSTableStream *stream=LSMReadTable("res/tables/table4");
-	SSTableStream *stream=streams[3];
+	int count=0;
 	for(int i=0;streams[i]!=NULL;i++){
-		while(SSTableStreamNext(streams[i], &r)){
-			RecordPrint(&r);
-		}
+		count++;
 	}
-	//printf("%d\n",k);
-
+	CachedStream cached[count];
+	for(int i=0;i<count;i++){
+		cached[i]=cache(streams[i]);
+	}
+	printInt(count);
+	MergeStream stream={.stream=cached,.n=count};
+	while(MergeStreamNext(&stream,&r)){
+		RecordPrint(&r);
+	}
 	free(lsm);
 
 }
