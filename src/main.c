@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include"LSMTree.h"
 #include "record.h"
 #include "utils.h"
@@ -23,6 +25,10 @@ record* getRandom(int time){
 int check(record* r){
 	return strcmp("group1",r->group)==0;
 }
+typedef int (*checkFun)(record*);
+
+
+
 void doScanCond(){
 	record r;
 	int k=0;
@@ -62,15 +68,16 @@ void doScan(){
 }
 
 int main(){
+	srand(time(NULL));
 
 	LSMTree* lsm=LSM();
 
 	forin(11){
 		record* r=getRandom(i);
-		LSMInsert(lsm,*r);
+		//LSMInsert(lsm,*r);
 		free(r);
 	}
-	doScan();
+	doScanCond();
 	free(lsm);
 
 }
