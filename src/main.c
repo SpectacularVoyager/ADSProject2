@@ -5,7 +5,7 @@
 #include <time.h>
 #include"LSMTree.h"
 #include "record.h"
-#include "utils.h"
+#include "list.h"
 
 
 #define forin(n) for(int i=0;i<n;i++)
@@ -43,7 +43,8 @@ void consume(Node* root,record* r,int* count){
 
 
 
-void doScanCond(LSMTree* lsm){
+List doScanCond(LSMTree* lsm){
+	List l=list(sizeof(record));
 	record r;
 	int k=0;
 	SSTableStream** streams= LSMGetStreams();	
@@ -65,23 +66,28 @@ void doScanCond(LSMTree* lsm){
 	int status=MergeStreamNext(&stream,temp);
 	while(status && avlc<_c){
 		if(RecordCompare(temp,&records[avlc])<0){
-			printf("SSTABLE:\t");
-			RecordPrint(temp);
+			//printf("SSTABLE:\t");
+			//RecordPrint(temp);
+			List_add(&l,temp);
 			status=MergeStreamNext(&stream,temp);
 		}else{
-			printf("AVL:\t\t");
-			RecordPrint(&records[avlc]);
+			//printf("AVL:\t\t");
+			//RecordPrint(&records[avlc]);
+			List_add(&l,&records[avlc]);
 			avlc++;
 		}
 	}
-	while(status&&MergeStreamNext(&stream,&r)){
-		printf("SSTABLE:\t");
-		RecordPrint(&r);
+	while(status&&MergeStreamNext(&stream,temp)){
+		//printf("SSTABLE:\t");
+		//RecordPrint(temp);
+		List_add(&l,temp);
 	}
 	while(avlc<_c){
-		printf("AVL:\t\t");
-		RecordPrint(&records[avlc++]);
+		//printf("AVL:\t\t");
+		//RecordPrint(&records[avlc++]);
+		List_add(&l,&records[avlc]);
 	}
+	return l;
 }
 void doScan(){
 	record r;
@@ -101,26 +107,22 @@ void doScan(){
 		RecordPrint(&r);
 	}
 }
+#define FAST_INSERT(x) forin(x){\
+		record* r=getRandom(i);\
+		LSMInsert(lsm,*r);\
+		free(r);\
+	}
 int main(){
 	srand(time(NULL));
 
 	LSMTree* lsm=LSM();
-
-	forin(5){
-		record* r=getRandom(i);
-		LSMInsert(lsm,*r);
-		free(r);
-	}
-
-	//record r[5];
-	//int _c=0;
-	//consume(lsm->root,r,&_c);
-
-	//forin(5){
-	//	RecordPrint(&r[i]);
-	//}
-
-	doScanCond(lsm);
+	//FAST_INSERT(34);
+	List l=doScanCond(lsm);
+	forlist(l){
+		record* r=List_get(&l,i);
+		printf("%d\t",i);
+		RecordPrint(r);
+	}	
 	free(lsm);
 
 }

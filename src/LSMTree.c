@@ -58,7 +58,6 @@ SSTableStream** LSMGetStreams(){
 		if(de->d_type!=DT_REG){continue;}
 		count++;
 	}
-	printf("C:%d\n",count);
 
 	SSTableStream **streams=malloc(sizeof(SSTableStream)*(count+1));
 
