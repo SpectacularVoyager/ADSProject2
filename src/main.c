@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,6 +11,8 @@
 #define forin(n) for(int i=0;i<n;i++)
 #define s(x) randStr(x,sizeof(x)/sizeof(char*))
 #define printInt(x) printf("%d\n",x)
+#define KILLSTART int ___killswitch___ =15
+#define KILLSWITCH if(___killswitch___--==0)break;
 
 char* groups[]={"group1","group2","group3","group4","group5","group6"};
 char* users[]={"user1","user2","user3","user4","user5","user6"};
@@ -27,9 +30,20 @@ int check(record* r){
 }
 typedef int (*checkFun)(record*);
 
+void consume(Node* root,record* r,int* count){
+	if(!root)return;
+	consume(root->left,r,count);
+
+	r[*count]=root->key;
+
+	*count=(*count)+1;
+
+	consume(root->right,r,count);
+}
 
 
-void doScanCond(){
+
+void doScanCond(LSMTree* lsm){
 	record r;
 	int k=0;
 	SSTableStream** streams= LSMGetStreams();	
@@ -43,9 +57,30 @@ void doScanCond(){
 	}
 	printInt(count);
 	MergeStream stream={.stream=cached,.n=count};
-	PredicatedStream pred={.stream=stream,.fun=check};
-	while(PredicatedStreamNext(&pred,&r)){
+	record records[5];
+	int _c=0;
+	consume(lsm->root,records,&_c);
+	int avlc=0;
+	record* temp=&r;
+	int status=MergeStreamNext(&stream,temp);
+	while(status && avlc<_c){
+		if(RecordCompare(temp,&records[avlc])<0){
+			printf("SSTABLE:\t");
+			RecordPrint(temp);
+			status=MergeStreamNext(&stream,temp);
+		}else{
+			printf("AVL:\t\t");
+			RecordPrint(&records[avlc]);
+			avlc++;
+		}
+	}
+	while(status&&MergeStreamNext(&stream,&r)){
+		printf("SSTABLE:\t");
 		RecordPrint(&r);
+	}
+	while(avlc<_c){
+		printf("AVL:\t\t");
+		RecordPrint(&records[avlc++]);
 	}
 }
 void doScan(){
@@ -66,18 +101,26 @@ void doScan(){
 		RecordPrint(&r);
 	}
 }
-
 int main(){
 	srand(time(NULL));
 
 	LSMTree* lsm=LSM();
 
-	forin(11){
+	forin(5){
 		record* r=getRandom(i);
-		//LSMInsert(lsm,*r);
+		LSMInsert(lsm,*r);
 		free(r);
 	}
-	doScanCond();
+
+	//record r[5];
+	//int _c=0;
+	//consume(lsm->root,r,&_c);
+
+	//forin(5){
+	//	RecordPrint(&r[i]);
+	//}
+
+	doScanCond(lsm);
 	free(lsm);
 
 }
