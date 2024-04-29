@@ -2,6 +2,6 @@ compile:
 	@gcc -g -o build/target $(shell find . -type f -name "*.c")
 
 run:
-	@./build/target
+	@rlwrap ./build/target
 
 all: compile run

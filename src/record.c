@@ -12,7 +12,7 @@ int RecordCompare(record* r1,record* r2){
 	}
 	return r1->timestamp-r2->timestamp;
 }
-void RecordPrint(record* r){
+void RecordPrint(const record* r){
 	printf("[%d,\"%s\",\"%s\",\"%s\",%ld]\n",r->id,r->group,r->user,r->msg,r->timestamp);
 }
 

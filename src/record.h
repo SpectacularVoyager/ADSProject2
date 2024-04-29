@@ -13,7 +13,7 @@ typedef struct record {
 } record;
 
 int RecordCompare(record* r1,record* r2);
-void RecordPrint(record* r);
+void RecordPrint(const record* r);
 record* Record(
 	int id,
 	char group[GROUP_CHAR_ARR_LEN],

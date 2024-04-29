@@ -67,7 +67,6 @@ SSTableStream** LSMGetStreams(){
 		if(de->d_type!=DT_REG){continue;}
 		char fp[200]="res/tables/";
 		strcat(fp,de->d_name);
-		printf("FILE:\t%s\n",fp);
 		FILE* f=fopen(fp,"r");
 		streams[i++]=stream(f);
 	}

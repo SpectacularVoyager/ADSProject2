@@ -9,6 +9,7 @@
 
 
 #define forin(n) for(int i=0;i<n;i++)
+
 #define s(x) randStr(x,sizeof(x)/sizeof(char*))
 #define printInt(x) printf("%d\n",x)
 #define KILLSTART int ___killswitch___ =15
@@ -43,7 +44,7 @@ void consume(Node* root,record* r,int* count){
 
 
 
-List doScanCond(LSMTree* lsm){
+List doScanAll(LSMTree* lsm){
 	List l=list(sizeof(record));
 	record r;
 	int k=0;
@@ -89,40 +90,50 @@ List doScanCond(LSMTree* lsm){
 	}
 	return l;
 }
-void doScan(){
-	record r;
-	int k=0;
-	SSTableStream** streams= LSMGetStreams();	
-	int count=0;
-	for(int i=0;streams[i]!=NULL;i++){
-		count++;
-	}
-	CachedStream cached[count];
-	for(int i=0;i<count;i++){
-		cached[i]=cache(streams[i]);
-	}
-	printInt(count);
-	MergeStream stream={.stream=cached,.n=count};
-	while(MergeStreamNext(&stream,&r)){
-		RecordPrint(&r);
-	}
-}
 #define FAST_INSERT(x) forin(x){\
-		record* r=getRandom(i);\
-		LSMInsert(lsm,*r);\
-		free(r);\
-	}
+	record* r=getRandom(i);\
+	LSMInsert(lsm,*r);\
+	free(r);\
+}
 int main(){
 	srand(time(NULL));
-
 	LSMTree* lsm=LSM();
-	//FAST_INSERT(34);
-	List l=doScanCond(lsm);
-	forlist(l){
-		record* r=List_get(&l,i);
-		printf("%d\t",i);
-		RecordPrint(r);
-	}	
+	while(1){
+		printf("LSM> ");
+		char c[2];
+		scanf("%1s",c);
+		if((c[0]|0x20)=='i'){
+			record r;
+			printf("FORMAT\t{ [ID]\t[GROUP]\t[USER]\t[MSG]\t[TIMESTAMP] }\n");
+			scanf("%d %20s %20s %100s %ld",&r.id,r.group,r.user,r.msg,&r.timestamp);
+			RecordPrint(&r);
+			LSMInsert(lsm,r);
+		}else if((c[0]|0x20)=='q'){
+			printf("INPUT>");
+			char input[40];
+			scanf("%39s",input);
+			if(strncmp("*",input,39)==0){
+				List l=doScanAll(lsm);
+				forin(l.n){
+					RecordPrint(&((record*)l.data)[i]);
+				}
+			}else{
+				List l=doScanAll(lsm);
+				forin(l.n){
+					record* r=&((record*)l.data)[i];
+					if(strncmp(r->group,input,20)==0)
+						RecordPrint(r);
+				}
+			}
+		}else if((c[0]|0x20)=='k'){
+			break;
+		}else if((c[0]|0x20)=='h'){
+			printf("ENTER:\t1. I for insert\n\t2. Q for query\n\t3. H for help\n\t4. K for quitting\n");
+		}else{
+			printf("INVALID OPERATION `%c`.\nPress h for help\n",c[0]);
+		}
+	}
+
 	free(lsm);
 
 }
